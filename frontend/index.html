@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Spam Checker</title>
+  <style>
+    body { font-family: Arial, sans-serif; max-width: 560px; margin: 60px auto; padding: 0 16px; }
+    textarea { width: 100%; height: 120px; padding: 10px; font-size: 16px; box-sizing: border-box; }
+    button { margin-top: 10px; padding: 10px 20px; font-size: 16px; cursor: pointer; }
+    #result { margin-top: 20px; padding: 14px; border-radius: 6px; display: none; font-size: 18px; }
+    .spam { background: #ffe0e0; color: #a00000; }
+    .ham { background: #e0ffe6; color: #006a1e; }
+    .error { background: #fff3cd; color: #7a5b00; }
+  </style>
+</head>
+<body>
+  <h1>Spam Checker</h1>
+  <textarea id="text" placeholder="Paste a message here..."></textarea>
+  <button id="check">Check message</button>
+  <div id="result"></div>
+
+  <script>
+    const API_URL = "http://127.0.0.1:8000";
+
+    document.getElementById("check").addEventListener("click", async () => {
+      const text = document.getElementById("text").value.trim();
+      const box = document.getElementById("result");
+      if (!text) return;
+
+      try {
+        const response = await fetch(API_URL + "/predict", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ text }),
+        });
+        const data = await response.json();
+        const percent = (data.spam_probability * 100).toFixed(1);
+        box.className = data.label;
+        box.textContent = data.label.toUpperCase() + " (" + percent + "% spam probability)";
+      } catch (err) {
+        box.className = "error";
+        box.textContent = "Could not reach the API. Is the backend running?";
+      }
+      box.style.display = "block";
+    });
+  </script>
+</body>
+</html>
